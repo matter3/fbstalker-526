@@ -30,11 +30,10 @@ import datetime
 from bs4 import BeautifulSoup
 from StringIO import StringIO
 
-from user_parse_multi import findUsers
-#from py2neo import neo4j, rel, node
-#from bulbs.neo4jserver import Graph
+from userparse import find_users
+
 import networkx as nx
-from compare_likesdb import compare_likes
+from compare import compare_likes
 
 requests.adapters.DEFAULT_RETRIES = 10
 
@@ -165,7 +164,7 @@ def begin_pages_liked_scan(username, password, starting, increment, pageid):
 
 	loginFacebook(unique_driver, username, password)
 
-	all_users = findUsers(pageid, starting, increment)
+	all_users = find_users(pageid, starting, increment)
 	user_id=1
 	for user in all_users:
 		filename = "User Likes/"+pageid+"/Cache/"+user+"_"+pageid+"_cache.htm"
