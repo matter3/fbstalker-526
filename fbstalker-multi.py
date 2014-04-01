@@ -153,7 +153,9 @@ def downloadPagesLiked(driver,userid):
 	return driver.page_source
 
 
-
+#My code
+#Start scanning users given a starting point and increment
+#Built for multiprocessing
 def begin_pages_liked_scan(username, password, starting, increment, pageid):
 
 	#create new driver for each user
@@ -164,39 +166,44 @@ def begin_pages_liked_scan(username, password, starting, increment, pageid):
 
 	loginFacebook(unique_driver, username, password)
 
+	#Get the list of usernames we should be scanning
 	all_users = find_users(pageid, starting, increment)
+	
+	#Testing for graph stuff
 	user_id=1
+	
 	for user in all_users:
 		filename = "User Likes/"+pageid+"/Cache/"+user+"_"+pageid+"_cache.htm"
 		if not os.path.exists(filename):
-				print "[*] Caching Pages Liked By: "+user
-				html = downloadPagesLiked(unique_driver,convertUser2ID2(unique_driver,user))
-				text_file = open(filename, "w")
-				text_file.write(html.encode('utf8'))
-				text_file.close()
+			print "[*] Caching Pages Liked By: "+user
+			html = downloadPagesLiked(unique_driver,convertUser2ID2(unique_driver,user))
+			text_file = open(filename, "w")
+			text_file.write(html.encode('utf8'))
+			text_file.close()
 		else:
 			html = open(filename, 'r').read()
-		dataList = parsePagesLiked(html)
-		pagesCondensed = open("User Likes/"+pageid+"/"+user+"_pagesliked.txt", "w")
+			
+		page_list_ = parsePagesLiked(html)
+		pages_txt = open("User Likes/"+pageid+"/"+user+"_pagesliked.txt", "w")
 
 		print "[*] Saving pages liked..."
 		gr.add_node(user_id)
 		page_id = user_id*10000
-		for i in dataList:	
-			pageName = normalize(i[1])
+		
+		for i in page_list:	
+			page_name = normalize(i[1])
 
-			#create page node
-			#create edge from user to page
-			gr.add_node(hashlib.sha224(pageName).hexdigest())
-			gr.add_edge(user_id, hashlib.sha224(pageName).hexdigest())
+			gr.add_node(hashlib.sha224(page_name).hexdigest())
+			gr.add_edge(user_id, hashlib.sha224(page_name).hexdigest())
 
-			pagesCondensed.write(pageName+'\n')
+			pages_txt.write(page_name+'\n')
 			page_id +=1
-		pagesCondensed.close()
+			
+		pages_txt.close()
 
 		user_id += 1
 
-
+	#Make some fancy graphs
 	if not os.path.exists("Graphs"):
 		os.makedirs("Graphs")
 	if not os.path.exists("Graphs/"+pageid):
@@ -277,6 +284,7 @@ def mainProcess(username, page, increment_amount):
 		html = open(filename, 'r').read()
 
 
+	#Show this - my code
 	#Caching Pages Liked - Start
 	if not os.path.exists("User Likes"):
 		os.makedirs("User Likes")
@@ -287,16 +295,16 @@ def mainProcess(username, page, increment_amount):
 	if not os.path.exists("User Likes/"+pageid+"/Cache"):
 		os.makedirs("User Likes/"+pageid+"/Cache")
 
-	usersFromPage = findUsers(pageid)
+	users_from_page = find_users(pageid)
 
 	user_list = open(full_user_list, "r")
 	starting_point = 0
 
+	#For all the accounts in the .txt, start a new process to scan
 	for new_user in user_list:
 		new_user_name = new_user.split(",")[0]
 		new_user_password = new_user.split(",")[1].rstrip()
-
-		#u = threading.Thread(target=begin_pages_liked_scan, args=(new_user_name, new_user_password, starting_point, increment_amount))
+		
 		u = Process(target=begin_pages_liked_scan, args=(new_user_name, new_user_password, starting_point, increment_amount, pageid))
 		u.start()
 
@@ -304,7 +312,7 @@ def mainProcess(username, page, increment_amount):
 
 	u.join()
 
-	#compare_likes(pageid)
+	compare_likes(pageid)
 
 	#Caching Pages Liked - End
 
@@ -313,7 +321,6 @@ def mainProcess(username, page, increment_amount):
 	
 	driver.close()
 	driver.quit
-	#conn.close()
 
 
 def options(arguments):
