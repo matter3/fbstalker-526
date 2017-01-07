@@ -42,7 +42,7 @@ h = httplib2.Http(".cache")
 
 
 facebook_username = "fubag01@gmail.com"
-facebook_password = "jasper"
+facebook_password = "password"
 
 full_user_list = "facebook_accounts.txt"
 
